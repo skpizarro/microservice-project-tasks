@@ -25,7 +25,7 @@ public class ProjectTask {
     private Long id;
 
     @NotBlank(message = "El name es requerido")
-    @Column(name = "project_name", unique = true)
+    @Column(name = "name", unique = true)
     private String name;
 
     @NotBlank(message = "El summary es requerido")
@@ -54,7 +54,7 @@ public class ProjectTask {
     @Column(name = "end_date")
     private Date endDate;
 
-    @Column(name = "project_identifier",unique = true, updatable = false)
+    @Column(name = "project_identifier", updatable = false)
     private String projectIdentifier;
 
 

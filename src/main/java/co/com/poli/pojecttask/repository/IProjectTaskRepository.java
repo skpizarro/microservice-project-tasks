@@ -11,4 +11,6 @@ import java.util.List;
 public interface IProjectTaskRepository extends JpaRepository<ProjectTask,Long> {
 
     List<ProjectTask> findProjectTasksByProjectIdentifier(String projectIdenfifier);
+
+
 }

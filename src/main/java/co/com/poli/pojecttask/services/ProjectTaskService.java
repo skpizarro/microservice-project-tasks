@@ -20,6 +20,6 @@ public class ProjectTaskService implements IProjectTaskService{
 
     @Override
     public List<ProjectTask> getAllTasksByProjectIdentifier(String projectIdentifier) {
-        return null;
+        return iProjectTaskRepository.findProjectTasksByProjectIdentifier(projectIdentifier);
     }
 }

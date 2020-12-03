@@ -5,14 +5,12 @@ import co.com.poli.pojecttask.model.ErrorMessage;
 import co.com.poli.pojecttask.services.IProjectTaskService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.nashorn.api.scripting.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
@@ -39,11 +37,41 @@ public class ProjectTaskController {
             ProjectTask projectTaskDB = iProjectTaskService.createNewProjectTask(projectTask);
             return ResponseEntity.status(HttpStatus.CREATED).body(projectTaskDB);
         }catch (Exception e){
-            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST,"Llave duplicada: el projectName y projectIdentifier deben ser valores únicos");
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST,"Llave duplicada: El name debe ser un valor unico");
         }
 
     }
 
+    @GetMapping(value = "/project/{projectIdentifier}")
+    public ResponseEntity<List<ProjectTask>> getAllTasksByProjectIdentifier(@PathVariable("projectIdentifier") String projectIdentifier){
+
+        List<ProjectTask> listTaskDB = iProjectTaskService.getAllTasksByProjectIdentifier(projectIdentifier);
+
+        if(listTaskDB.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"El proyecto no existe");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(listTaskDB);
+    }
+
+    @GetMapping(value = "/hours/project/{projectIdentifier}")
+    public ResponseEntity<Map> hoursByProject(@PathVariable("projectIdentifier") String projectIdentifier){
+
+        List<ProjectTask> listTaskDB = iProjectTaskService.getAllTasksByProjectIdentifier(projectIdentifier);
+
+        if(listTaskDB.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"El proyecto no existe");
+        }
+
+        Double hoursProject = listTaskDB.stream()
+                .filter(task-> !task.getStatus().equals("DELETED"))
+                .collect(Collectors.summingDouble(task->task.getHours()));
+
+        HashMap resp = new HashMap<>();
+        resp.put("hoursProject",hoursProject);
+
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
+
+    }
 
 
     private String formatMessage(BindingResult result){
