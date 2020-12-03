@@ -1,17 +1,19 @@
 package co.com.poli.pojecttask.controllers;
 
+
 import co.com.poli.pojecttask.domain.ProjectTask;
 import co.com.poli.pojecttask.model.ErrorMessage;
+import co.com.poli.pojecttask.model.ProjectTaskStatus;
 import co.com.poli.pojecttask.services.IProjectTaskService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jdk.nashorn.api.scripting.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -61,16 +63,38 @@ public class ProjectTaskController {
         if(listTaskDB.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"El proyecto no existe");
         }
+        Map resp = iProjectTaskService.calculateHoursProject(listTaskDB,null);
+        return ResponseEntity.status(HttpStatus.OK).body(resp);
 
-        Double hoursProject = listTaskDB.stream()
-                .filter(task-> !task.getStatus().equals("DELETED"))
-                .collect(Collectors.summingDouble(task->task.getHours()));
+    }
 
-        HashMap resp = new HashMap<>();
-        resp.put("hoursProject",hoursProject);
+    @GetMapping(value = "/hours/project/{projectIdentifier}/{status}")
+    public ResponseEntity<Map> hoursByProjectAndStatus(@PathVariable("projectIdentifier") String projectIdentifier,
+                                                       @PathVariable("status") ProjectTaskStatus status){
+
+        List<ProjectTask> listTaskDB = iProjectTaskService.getTasksByProjectIdentifierAndStatus(projectIdentifier, status);
+
+        if(listTaskDB.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"El proyecto con el estado ingresado no existe");
+        }
+
+        Map resp = iProjectTaskService.calculateHoursProject(listTaskDB,status);
 
         return ResponseEntity.status(HttpStatus.OK).body(resp);
 
+    }
+
+    @DeleteMapping(value = "/{idTask}/{projectIdentifier}")
+    public ResponseEntity<ProjectTask> deleteProjectTask(@PathVariable("idTask") Long id,
+                                                         @PathVariable("projectIdentifier") String projectIdentifier){
+        ProjectTask projectTaskDB = iProjectTaskService.getProjectTasksByIdAndProjectIdentifier(id,projectIdentifier);
+
+        if(projectTaskDB==null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"La tarea no existe");
+        }
+
+        ProjectTask projectTaskDeleted = iProjectTaskService.deleteProjectTask(projectTaskDB);
+        return ResponseEntity.status(HttpStatus.OK).body(projectTaskDeleted);
     }
 
 
