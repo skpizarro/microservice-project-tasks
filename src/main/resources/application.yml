@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: task-service
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost/taller-cloud
@@ -9,5 +11,10 @@ spring:
       ddl-auto: update
     show-sql: true
     database: postgresql
+  cloud:
+    config:
+      uri: http://localhost:9000
+      name: ${CONFIG_USER}
+      password: ${CONFIG_PASSWORD}
 server:
   port: 9003
